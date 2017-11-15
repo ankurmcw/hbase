@@ -45,15 +45,15 @@ public class HbaseApplication {
             }
         } else {
             logger.error("Bean initialization failed");
-        }*/
+        }
 
         String tableName = "test";
 
 		SparkConf conf = new SparkConf().setAppName("POC").setMaster("local[2]");
-		conf.set("spark.hbase.host", "localhost");
+		conf.set("spark.hbase.host", "127.0.0.1");
         SparkContext sparkContext = new SparkContext(conf);
 
-        /*org.apache.hadoop.conf.Configuration configuration = HBaseConfiguration.create();
+        org.apache.hadoop.conf.Configuration configuration = HBaseConfiguration.create();
         configuration.set("hbase.master", "localhost:60000");
         configuration.setInt("timeout", 120000);
         configuration.set("hbase.zookeeper.quorum", "localhost");
@@ -67,31 +67,21 @@ public class HbaseApplication {
         //JavaSparkContext javaSparkContext = new JavaSparkContext("local", "POC", conf);
 
 
-        SparkSession session = SparkSession.builder().master("local")
-                .appName("Word Count")
-                //.config(conf)
+        SparkSession session = SparkSession.builder()
+                .master("local[4]")
+                /*.appName("POC")
+                .config(conf)
                 .sparkContext(sparkContext)
-                //.config("hbase.master", "localhost:60000")
-                //.config("timeout", 120000)
-                //.config("hbase.zookeeper.quorum", "localhost")
-                //.config("hbase.zookeeper.property.clientPort", "2181")
+                .config("hbase.master", "localhost:60000")
+                .config("timeout", 120000)
+                .config("hbase.zookeeper.quorum", "127.0.0.1")
+                .config("hbase.zookeeper.property.clientPort", "2181")*/
                 .getOrCreate();
 
         SQLContext sqlContext = session.sqlContext();
 
-        /*final String hb_staging_table = "HbStagingTable";
-        final String staging_table = "StagingTable";
-        final String insert_sql = "INSERT INTO TABLE " + staging_table + " VALUES (\"strcol\" , \"bytecol\" , \"shortcol\" , \"intcol\" ," +
-                "  \"longcol\" , \"floatcol\" , \"doublecol\")";
-        final String retrieve_sql = "SELECT * FROM " + staging_table;
-        String create_sql = "CREATE TABLE " + staging_table + " (strcol STRING, bytecol STRING, shortcol STRING, intcol STRING, longcol STRING, floatcol STRING, doublecol STRING) TBLPROPERTIES(" +
-                "'hbaseTableName'='" + hb_staging_table +"'," +
-                "'keyCols'='doublecol;strcol;intcol'," +
-                "'nonKeyCols'='bytecol,cf1,hbytecol;shortcol,cf1,hshortcol;longcol,cf2,hlongcol;floatcol,cf2,hfloatcol')";
+        logger.info("Configuration: {}", sqlContext.getAllConfs());
 
-        session.sql(create_sql).collect();
-        session.sql(insert_sql).collect();
-        List<Row> rows = session.sql(retrieve_sql).collectAsList();*/
 
         String catalog = "{\"table\":{\"namespace\":\"default\",\"name\":\"test\"},\"rowkey\":\"key\",\"columns\":{\"col0\":{\"cf\":\"rowkey\",\"col\":\"key\",\"type\":\"string\"},\"col1\":{\"cf\":\"cf\",\"col\":\"a\",\"type\":\"string\"},\"col2\":{\"cf\":\"cf\",\"col\":\"b\",\"type\":\"string\"},\"col3\":{\"cf\":\"cf\",\"col\":\"c\",\"type\":\"string\"}}}";
 
@@ -101,15 +91,17 @@ public class HbaseApplication {
         //List<Row> rows = sqlContext.read().options(map).format("org.apache.spark.sql.execution.datasources.hbase").load().collectAsList();
         //System.out.println(rows.toString());
 
-        Dataset<Row> dataSet = sqlContext.read().options(map).format("org.apache.spark.sql.execution.datasources.hbase").load();
+        Dataset<Row> dataSet = sqlContext.read().option("catalog", catalog).format("org.apache.spark.sql.execution.datasources.hbase").load();
 
         dataSet.createOrReplaceTempView("table");
 
-        List<Row> rows =  sqlContext.sql("select * from table").collectAsList();
+        List<Row> rows =  sqlContext.sql("select col1, col2, col3 from table where col0='row2'").collectAsList();
 
-        System.out.println(rows.toString());
+        logger.info("Table data: {}", rows.toString());
 
-        sparkContext.stop();
+        //sparkContext.stop();
+
+        session.close();
 
     }
 }
