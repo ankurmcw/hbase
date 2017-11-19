@@ -8,6 +8,7 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
+import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
@@ -17,6 +18,7 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 import scala.collection.JavaConversions;
 import scala.collection.Seq;
 
