@@ -2,10 +2,7 @@ package com.poc.hbase;
 
 import org.apache.spark.sql.*;
 import org.apache.spark.sql.execution.datasources.hbase.HBaseTableCatalog;
-import scala.collection.JavaConversions;
-import scala.collection.Seq;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +21,33 @@ public class Demo {
 
         SQLContext sqlContext = session.sqlContext();
 
-        String catalog1 = "{\"table\":{\"namespace\":\"default\",\"name\":\"test\"},\"rowkey\":\"key\",\"columns\":{\"col0\":{\"cf\":\"rowkey\",\"col\":\"key\",\"type\":\"string\"},\"col1\":{\"cf\":\"cf\",\"col\":\"a\",\"type\":\"string\"},\"col2\":{\"cf\":\"cf\",\"col\":\"b\",\"type\":\"string\"},\"col3\":{\"cf\":\"cf\",\"col\":\"c\",\"type\":\"string\"}}}";
+        String catalog1 = "{\n" +
+                "  \"table\": {\n" +
+                "    \"namespace\": \"default\",\n" +
+                "    \"name\": \"emp\"\n" +
+                "  },\n" +
+                "  \"rowkey\": \"key\",\n" +
+                "  \"columns\": {\n" +
+                "    \"id\": {\n" +
+                "      \"cf\": \"rowkey\",\n" +
+                "      \"col\": \"key\",\n" +
+                "      \"type\": \"string\"\n" +
+                "    },\n" +
+                "    \"email\": {\n" +
+                "      \"cf\": \"professional\",\n" +
+                "      \"col\": \"email\",\n" +
+                "      \"type\": \"string\"\n" +
+                "    },\n" +
+                "    \"empid\": {\n" +
+                "      \"cf\": \"professional\",\n" +
+                "      \"col\": \"empId\",\n" +
+                "      \"type\": \"string\"\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
 
         Map<String, String> map = new HashMap<>();
+
         map.put(HBaseTableCatalog.tableCatalog(), catalog1);
 
         Dataset<Row> ds1 = sqlContext.read().options(map).format("org.apache.spark.sql.execution.datasources.hbase").load();
@@ -35,7 +56,30 @@ public class Demo {
 
         System.out.println("Details of Table1: " + tableData1);
 
-        String catalog2 = "{\"table\":{\"namespace\":\"default\",\"name\":\"test2\"},\"rowkey\":\"key\",\"columns\":{\"col4\":{\"cf\":\"rowkey\",\"col\":\"key\",\"type\":\"string\"},\"col5\":{\"cf\":\"cf\",\"col\":\"a\",\"type\":\"string\"},\"col6\":{\"cf\":\"cf\",\"col\":\"c\",\"type\":\"string\"},\"col7\":{\"cf\":\"cf\",\"col\":\"d\",\"type\":\"string\"}}}";
+        String catalog2 = "{\n" +
+                "  \"table\": {\n" +
+                "    \"namespace\": \"default\",\n" +
+                "    \"name\": \"person\"\n" +
+                "  },\n" +
+                "  \"rowkey\": \"key\",\n" +
+                "  \"columns\": {\n" +
+                "    \"personid\": {\n" +
+                "      \"cf\": \"rowkey\",\n" +
+                "      \"col\": \"key\",\n" +
+                "      \"type\": \"string\"\n" +
+                "    },\n" +
+                "    \"name\": {\n" +
+                "      \"cf\": \"personal\",\n" +
+                "      \"col\": \"name\",\n" +
+                "      \"type\": \"string\"\n" +
+                "    },\n" +
+                "    \"city\": {\n" +
+                "      \"cf\": \"personal\",\n" +
+                "      \"col\": \"city\",\n" +
+                "      \"type\": \"string\"\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
 
         map.put(HBaseTableCatalog.tableCatalog(), catalog2);
 
@@ -45,9 +89,9 @@ public class Demo {
 
         System.out.println("Details of Table2: " + tableData2);
 
-        Column column = new Column("col1").equalTo(new Column("col5"));
+        Column column = new Column("id").equalTo(new Column("personid"));
 
-        Dataset<Row> joinDs = ds1.join(ds2, column).select("col2", "col3", "col6", "col7");
+        Dataset<Row> joinDs = ds1.join(ds2, column).select("id", "empid", "name", "city", "email").sort("id");
 
         System.out.println("Join result: " + joinDs.collectAsList());
 
@@ -55,7 +99,7 @@ public class Demo {
 
         ds2.createOrReplaceTempView("temp_view2");
 
-        List<Row> joinResult =  sqlContext.sql("select col2, col3, col6, col7 from temp_view1 join temp_view2 on col1 = col5").collectAsList();
+        List<Row> joinResult =  sqlContext.sql("select id, empid, name, city, email from temp_view1 join temp_view2 on id = personid order by id").collectAsList();
 
         System.out.println("Join result: " + joinResult);
 
