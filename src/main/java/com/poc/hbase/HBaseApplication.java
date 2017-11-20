@@ -10,7 +10,8 @@ public class HBaseApplication {
 
 	public static void main(String[] args) throws IOException {
 		SpringApplication.run(HBaseApplication.class, args);
-		new SHCTest().readData();
+		//new SHCTest().readData();
+		new Demo().displayData();
     }
 
 }

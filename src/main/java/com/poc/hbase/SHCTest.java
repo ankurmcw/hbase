@@ -49,7 +49,7 @@ public class SHCTest {
             logger.error("Bean initialization failed");
         }*/
 
-       String tableName = "test";
+        String tableName = "test";
 
 		SparkConf conf = new SparkConf().setAppName("POC").setMaster("local[2]");
 		conf.set("spark.hbase.host", "127.0.0.1");
@@ -63,6 +63,7 @@ public class SHCTest {
         configuration.set(TableInputFormat.INPUT_TABLE, tableName);
 
         RDD rdd = sparkContext.newAPIHadoopRDD(configuration, TableInputFormat.class, ImmutableBytesWritable.class, Result.class);
+
         logger.info("Table count: {}", rdd.count());
         //sparkContext.stop();
 
@@ -97,6 +98,7 @@ public class SHCTest {
 
         dataSet1.createOrReplaceTempView("table1");
 
+
         List<Row> rows1 =  sqlContext.sql("select col1, col2, col3 from table1").collectAsList();
 
         logger.info("Table result1: {}", rows1.toString());
@@ -107,7 +109,7 @@ public class SHCTest {
 
         dataSet2.createOrReplaceTempView("table2");
 
-        List<Row> rows2 =  sqlContext.sql("select col5, col6, col7 from table2 limit 1").collectAsList();
+        List<Row> rows2 =  sqlContext.sql("select col1, col2, col3, col5, col6, col7 from table2 join table1 on col1=col5").collectAsList();
 
         logger.info("Table result2:\n{}", rows2);
 
